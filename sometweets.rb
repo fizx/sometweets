@@ -13,7 +13,7 @@ use Rack::StreamingProxy do |request|
   case request.path 
   when %r[^/(search|trends)]
     "http://search.twitter.com/#{request.path}"
-  when %r[^/(admin|$)]
+  when %r[^/(admin|misc|$)]
     SERVE_CONTENT
   else
     "http://api.twitter.com/#{request.path}"
