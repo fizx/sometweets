@@ -20,5 +20,9 @@ use Rack::StreamingProxy do |request|
 end
 
 get "/" do
-  "This will eventually be an admin page"
+  erb :home
+end
+
+get "/admin" do
+  erb :admin
 end
