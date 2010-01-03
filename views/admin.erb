@@ -1,1 +1,17 @@
-admin!
+<html>
+  <head>
+    <style>
+      *{
+        font-family: sans-serif
+      }
+    </style>
+  </head>
+  <body>
+    <h1>sometweets</h1>
+    <h2>recent tweets</h2>
+    <ol>
+      <% @timeline.each do |item| %>
+        <li><%=CGI::escape item.inspect%></li>
+      <% end %>
+    </ol>
+  </body>
