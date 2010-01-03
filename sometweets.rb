@@ -66,6 +66,7 @@ end
 get "/admin" do
   if client = logged_in_client
     @timeline = client.home_timeline
+    erb :admin
   else
     redirect token.authorize_url
   end
