@@ -34,7 +34,7 @@ def token
   if session[:token] && session[:secret]
     OAuth::RequestToken.new(oauth.consumer, session[:token], session[:secret])
   else
-    t = oauth.consumer.get_request_token
+    t = oauth.consumer.get_request_token(:oauth_callback => "http://sometweets.heroku.com/admin")
     session[:token]  = t.token
     session[:secret] = t.secret
     t
