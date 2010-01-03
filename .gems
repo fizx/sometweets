@@ -1,0 +1,4 @@
+rack-streaming-proxy
+sinatra
+activerecord
+sqlite3-ruby
