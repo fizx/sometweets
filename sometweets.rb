@@ -33,8 +33,7 @@ end
 
 def oauth
   unless ENV["OAUTH_TOKEN"] &&  ENV["OAUTH_SECRET"]
-    puts "Need OAUTH_TOKEN and OAUTH_SECRET for your app!"
-    exit 1
+    throw :halt, [ 401, 'Need OAUTH_TOKEN and OAUTH_SECRET for your app!' ]
   end
   Twitter::OAuth.new(ENV["OAUTH_TOKEN"], ENV["OAUTH_SECRET"])
 end
