@@ -11,7 +11,7 @@
     <h2>recent tweets</h2>
     <ol>
       <% @timeline.each do |item| %>
-        <li><%=CGI::escape item.inspect%></li>
+        <li><%= item.inspect%></li>
       <% end %>
     </ol>
   </body>
