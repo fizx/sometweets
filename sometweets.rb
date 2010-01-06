@@ -10,6 +10,8 @@ require 'oauth'
 require 'sinatra'
 require 'partials'
 require 'simple_proxy'
+require 'zlib'
+require 'stringio'
 
 set :environment, :production
 set :lock, false
@@ -24,6 +26,7 @@ end
 
 class FilterCallback
   def call(code, headers, content)
+    content = Zlib::GzipReader.new(StringIO.new(content)).read
     puts content.inspect
     return [code, headers, content]
   end
