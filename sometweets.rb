@@ -26,9 +26,14 @@ end
 
 class FilterCallback
   def call(code, headers, content)
-    content = Zlib::GzipReader.new(StringIO.new(content)).read
-    puts content.inspect
-    return [code, headers, content]
+    unzipped = Zlib::GzipReader.new(StringIO.new(content)).read
+    
+
+    buffer = StringIO.new
+    writer = Zlib::GzipWriter.new(buffer, nil, nil)
+    writer.write(unzipped)
+    writer.close
+    return [code, headers, buffer.read]
   end
 end
 
