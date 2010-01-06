@@ -1,3 +1,4 @@
+$KCODE = 'u'
 require 'rubygems'
 require 'activerecord'
 dbconfig = YAML.load(File.read('config/database.yml'))
@@ -7,6 +8,7 @@ require 'cgi'
 require 'twitter'
 require 'oauth'
 require 'sinatra'
+require 'partials'
 require 'rack/streaming_proxy'
 
 set :environment, :production
@@ -16,6 +18,10 @@ set :sessions, true
 
 SERVE_CONTENT = nil
 
+helpers do
+  include Sinatra::Partials
+end
+
 use Rack::StreamingProxy do |request|
   case request.path 
   when %r[^/(search|trends)]
@@ -23,7 +29,7 @@ use Rack::StreamingProxy do |request|
   when %r[^/(admin|misc|$)]
     SERVE_CONTENT
   else
-    "http://api.twitter.com/#{request.path}"
+    "http://twitter.com/#{request.path}"
   end
 end
 
@@ -43,7 +49,7 @@ def token
     puts "Recalling token: #{session[:token]}"
     OAuth::RequestToken.new(oauth.consumer, session[:token], session[:secret])
   else
-    t = oauth.consumer.get_request_token(:oauth_callback => "http://sometweets.heroku.com/admin")
+    t = oauth.consumer.get_request_token(:oauth_callback => "http://twitter.local/admin")
     session[:token]  = t.token
     session[:secret] = t.secret
     puts "Generated token: #{session[:token]} (#{t.token})"
@@ -54,7 +60,6 @@ end
 
 def logged_in_client
   return nil unless session[:access_token]
-
   o = oauth()
   o.authorize_from_access(session[:access_token], session[:access_secret])
   Twitter::Base.new(o)  
@@ -72,10 +77,11 @@ get "/admin" do
     access = token.get_access_token(:oauth_verifier => params[:oauth_verifier])
     session[:access_token] = access.token
     session[:access_secret] = access.secret
+    redirect "/admin" and return
   end
-  # session[:access_secret] ||= params[:oauth_verifier]
   if client = logged_in_client
     @timeline = client.home_timeline
+    @favs = client.favorites
     erb :admin
   else
     redirect token.authorize_url

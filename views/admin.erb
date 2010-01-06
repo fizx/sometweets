@@ -4,15 +4,46 @@
       *{
         font-family: sans-serif
       }
+      li{
+        clear:both;
+        list-style:none;
+      }
+      li img {
+        float:left;
+        margin: 0 5px 5px 0;
+      }
+      .col {
+        width:300px;
+        margin-right:20px;
+        padding:10px;
+        background-color: #ccf;
+        float:left;
+      }
     </style>
   </head>
   <body>
     <h1>sometweets</h1>
-    <h2>recent tweets</h2>
-    <ol>
-      <% @timeline.each do |item| %>
-        <li><%= item.inspect%></li>
-      <% end %>
-    </ol>
+    <div class="col" id="recent">
+      <h2>recent</h2>
+      <ol>
+        <%=partial :tweet, :collection => @timeline %>
+      </ol>
+    </div>
+    <div class="col" id="loves">
+      <h2>loves</h2>
+      <ol>
+        <%=partial :tweet, :collection => @favs %>
+      </ol>
+    </div>
+    <div class="col" id="hates">
+      <h2>hates</h2>
+      <ol>
+      </ol>
+    </div>
+    
+    <div style="clear:both">
+      <h3>Debug crap</h3>
+      <%=@timeline.inspect %>
+    </div>
   </body>
 </html>
