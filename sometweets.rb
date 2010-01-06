@@ -9,7 +9,7 @@ require 'twitter'
 require 'oauth'
 require 'sinatra'
 require 'partials'
-require 'rack/streaming_proxy'
+require 'simple_proxy'
 
 set :environment, :production
 set :lock, false
@@ -22,14 +22,14 @@ helpers do
   include Sinatra::Partials
 end
 
-use Rack::StreamingProxy do |request|
+use SimpleProxy do |request|
   case request.path 
   when %r[^/(search|trends)]
-    "http://search.twitter.com/#{request.path}"
+    "search.twitter.com"
   when %r[^/(admin|misc|$)]
     SERVE_CONTENT
   else
-    "http://twitter.com/#{request.path}"
+    "twitter.com"
   end
 end
 
