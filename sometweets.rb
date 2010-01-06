@@ -22,8 +22,17 @@ helpers do
   include Sinatra::Partials
 end
 
+class FilterCallback
+  def call(code, headers, content)
+    puts content.inspect
+    return [code, headers, content]
+  end
+end
+
 use SimpleProxy do |request|
   case request.path 
+  when "/statuses/home_timeline.xml"
+    ["twitter.com", FilterCallback.new()]
   when %r[^/(search|trends)]
     "search.twitter.com"
   when %r[^/(admin|misc|$)]
@@ -32,6 +41,7 @@ use SimpleProxy do |request|
     "twitter.com"
   end
 end
+# /statuses/home_timeline.xml?count=100
 
 get "/" do
   erb :home

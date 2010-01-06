@@ -7,7 +7,7 @@ class SimpleProxy
   
   def call(env)
     rack_req = Rack::Request.new(env)
-    host = @block.call(rack_req)
+    host, callback = @block.call(rack_req)
     return @app.call(env) unless host
     
     http_req = if rack_req.get?
@@ -32,6 +32,7 @@ class SimpleProxy
     headers = {}
     http_res.each_header {|k,v| headers[k] = v}
     
-    [http_res.code, headers, http_res.body]
+    out = [http_res.code, headers, http_res.body]
+    callback ? callback.call(*out) : out
   end
 end
