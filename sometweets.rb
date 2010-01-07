@@ -67,7 +67,7 @@ use SimpleProxy do |request|
     puts request.env.inspect
   case request.path 
   when %r[/statuses/home_timeline.xml]
-    ["twitter.com", FilterCallback.new()]
+    SERVE_CONTENT#    ["twitter.com", FilterCallback.new()]
   when %r[/favorites/(\w+)/(\d+).xml]
     ["twitter.com", FavoriteCallback.new($1)]
   when %r[^/(search|trends)]
@@ -79,6 +79,12 @@ use SimpleProxy do |request|
   end
 end
 # /statuses/home_timeline.xml?count=100
+
+get /.*/ do
+  puts request.env.inspect
+  "huh"
+end
+
 
 get "/" do
   erb :home
