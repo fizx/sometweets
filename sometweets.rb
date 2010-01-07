@@ -6,8 +6,7 @@ ActiveRecord::Base.establish_connection dbconfig['production']
 
 require 'cgi'
 require 'twitter'
-gem "yuri-classifier"
-require "classifier"
+require 'bishop'
 require 'oauth'
 require 'sinatra'
 require 'partials'
@@ -55,19 +54,21 @@ end
 
 class User < ActiveRecord::Base
   has_many :votes
-  serialize :classifier
   
   def update_classifier
-    c = Classifier::Bayes.new "good", "bad"
+    reload
+    c = Bishop::Bayes.new { |probs,ignore| Bishop::robinson( probs, ignore ) }
     votes.each do |vote|
-      if vote.value > 0
-        c.train_good prep(vote.speaker_handle, vote.content)
-      else
-        c.train_bad  prep(vote.speaker_handle, vote.content) 
-      end
+      c.train((vote.value > 0 ? "good" : "bad"), prep(vote.speaker_handle, vote.content))
     end
-    self.classifier = c
+    self["classifier"] = c.export
     save
+  end
+  
+  def classifier
+    c = Bishop::Bayes.new { |probs,ignore| Bishop::robinson( probs, ignore ) }
+    c.load_data(self["classifier"]) if self["classifier"]
+    c
   end
   
   def prep(user, text)
@@ -75,8 +76,9 @@ class User < ActiveRecord::Base
   end
   
   def score(user, text)
-    c = classifier.classifications prep(user, text)
-    c["good"] - c["bad"]
+    c = classifier.guess prep(user, text)
+    c = c.inject({}){|memo, (k,v)| memo[k]=v;memo}
+    c["good"].to_f - c["bad"].to_f
   end
 end
 
@@ -87,8 +89,11 @@ end
 class FilterCallback < ZippyXMLCallback
   def transform(doc)
     doc.find("//status").each do |status|
-      guid = status.find_first("id").content
-      Vote.find_or_initialize_by_tweet_guid_and_user_id_and_speaker_handle()
+      user = status.find_first("user/screen_name").content
+      text = status.find_first("text").content
+      if @user.score(user, text) < 0
+        status.remove!
+      end
     end
   end
 end
@@ -181,6 +186,8 @@ get "/admin" do
   if client = logged_in_client
     @timeline = client.home_timeline
     @favs = client.favorites
+    session[:handle] = client.verify_credentials["screen_name"]
+    @user = User.find_or_create_by_handle(session[:handle])
     erb :admin
   else
     redirect token.authorize_url
