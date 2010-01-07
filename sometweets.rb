@@ -30,7 +30,7 @@ class ZippyXMLCallback
     gz = Zlib::GzipReader.new(StringIO.new(content))
     doc = LibXML::XML::Document.io(gz)
     transform(doc)
-    buffer = StringIO.new("")
+    buffer = StringIO.new("", "r+")
     writer = Zlib::GzipWriter.new(buffer)
     writer.write(doc.to_s)
     writer.close
