@@ -1,7 +1,7 @@
 sinatra
 activerecord
 sqlite3-ruby
-yuri-classifier --source=http://gems.github.com
+yury-classifier --source=http://gems.github.com
 oauth
 libxml-ruby
 twitter
