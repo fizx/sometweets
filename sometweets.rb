@@ -64,6 +64,7 @@ end
 use SimpleProxy do |request|
   case request.path 
   when %r[/statuses/home_timeline.xml]
+    puts request.env.inspect
     ["twitter.com", FilterCallback.new()]
   when %r[/favorites/(\w+)/(\d+).xml]
     ["twitter.com", FavoriteCallback.new($1)]
