@@ -12,6 +12,7 @@ require 'partials'
 require 'simple_proxy'
 require 'zlib'
 require 'stringio'
+require "libxml"
 
 set :environment, :production
 set :lock, false
