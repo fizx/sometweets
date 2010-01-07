@@ -33,8 +33,8 @@ class ZippyXMLCallback
     buffer = StringIO.new("", "r+")
     writer = Zlib::GzipWriter.new(buffer)
     writer.write(doc.to_s)
-    writer.close_write
-    content = buffer.read
+    writer.close
+    content = buffer.string
     return [code, headers, content]
   end
   
