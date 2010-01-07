@@ -24,21 +24,49 @@ helpers do
   include Sinatra::Partials
 end
 
-class FilterCallback
+class ZippyXMLCallback
   def call(code, headers, content)
     gz = Zlib::GzipReader.new(StringIO.new(content))
-    unzipped = gz.read
-    puts unzipped.inspect
-    
-    # content = Zlib::Deflate.deflate(unzipped)
+    doc = LibXML::XML::Document.io(gz)
+    transform(doc)
+    buffer = StringIO.new("")
+    writer = Zlib::GzipWriter.new(buffer)
+    writer.write(doc.to_s)
+    writer.close
+    content = buffer.read
     return [code, headers, content]
   end
+  
+  def transform
+    raise "abstract"
+  end
 end
+
+class FilterCallback < ZippyXMLCallback
+  def transform(doc)
+    doc.find("//status").each do
+      
+    end
+  end
+end
+
+class FavoriteCallback < ZippyXMLCallback
+  def initialize(keyword)
+    @value = keyword == "create" ? 1 : -1
+  end
+  
+  def transform(doc)
+    
+  end
+end
+
 
 use SimpleProxy do |request|
   case request.path 
   when %r[/statuses/home_timeline.xml]
     ["twitter.com", FilterCallback.new()]
+  when %r[/favorites/(\w+)/(\d+).xml]
+    ["twitter.com", FavoriteCallback.new($1)]
   when %r[^/(search|trends)]
     "search.twitter.com"
   when %r[^/(admin|misc|$)]

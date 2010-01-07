@@ -1,4 +1,5 @@
 <li>
   <img src="<%=tweet["user"]["profile_image_url"] %>" width="40">
-  <%= tweet["text"]%>
+  <%= tweet["text"]%> <br>
+  <span style="color:blue"><%=classifier_score(tweet)%></span>
 </li>

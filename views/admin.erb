@@ -29,21 +29,5 @@
         <%=partial :tweet, :collection => @timeline %>
       </ol>
     </div>
-    <div class="col" id="loves">
-      <h2>loves</h2>
-      <ol>
-        <%=partial :tweet, :collection => @favs %>
-      </ol>
-    </div>
-    <div class="col" id="hates">
-      <h2>hates</h2>
-      <ol>
-      </ol>
-    </div>
-    
-    <div style="clear:both">
-      <h3>Debug crap</h3>
-      <%=@timeline.inspect %>
-    </div>
   </body>
 </html>

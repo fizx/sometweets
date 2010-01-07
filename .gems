@@ -2,5 +2,6 @@ sinatra
 activerecord
 sqlite3-ruby
 classifier
-twitter
 oauth
+libxml-ruby
+twitter
