@@ -105,7 +105,7 @@ class FavoriteCallback < ZippyXMLCallback
   end
   
   def transform(doc)
-    doc.find("//status").each do
+    doc.find("//status").each do |status|
       guid = status.find_first("id").content
       speaker = status.find_first("./user/screen_name").content
       content = status.find_first("./text").content
