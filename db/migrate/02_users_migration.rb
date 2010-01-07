@@ -4,7 +4,7 @@ class UsersMigration < ActiveRecord::Migration
       t.string :handle
       t.text :classifier
     end  
-    add_index :votes, :handle
+    add_index :users, :handle
   end
 
   def self.down

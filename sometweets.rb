@@ -4,10 +4,10 @@ require 'activerecord'
 dbconfig = YAML.load(File.read('config/database.yml'))
 ActiveRecord::Base.establish_connection dbconfig['production']
 
-
-
 require 'cgi'
 require 'twitter'
+gem "yuri-classifier"
+require "classifier"
 require 'oauth'
 require 'sinatra'
 require 'partials'
@@ -15,6 +15,7 @@ require 'simple_proxy'
 require 'zlib'
 require 'stringio'
 require "libxml"
+require "base64"
 
 set :environment, :production
 set :lock, false
@@ -28,6 +29,13 @@ helpers do
 end
 
 class ZippyXMLCallback
+  
+  def initialize(request)
+    encoded = request.env["HTTP_AUTHORIZATION"][/Basic (.*)/, 1]
+    handle = Base64.decode64(encoded).split(":").first
+    @user = User.find_or_create_by_handle(handle)
+  end
+  
   def call(code, headers, content)
     gz = Zlib::GzipReader.new(StringIO.new(content))
     doc = LibXML::XML::Document.io(gz)
@@ -45,32 +53,76 @@ class ZippyXMLCallback
   end
 end
 
+class User < ActiveRecord::Base
+  has_many :votes
+  serialize :classifier
+  
+  def update_classifier
+    c = Classifier::Bayes.new "good", "bad"
+    votes.each do |vote|
+      if vote.value > 0
+        c.train_good prep(vote.speaker_handle, vote.content)
+      else
+        c.train_bad  prep(vote.speaker_handle, vote.content) 
+      end
+    end
+    self.classifier = c
+    save
+  end
+  
+  def prep(user, text)
+    "twitteruser#{user} #{text}"
+  end
+  
+  def score(user, text)
+    c = classifier.classifications prep(user, text)
+    c["good"] - c["bad"]
+  end
+end
+
+class Vote < ActiveRecord::Base
+  belongs_to :user
+end
+
 class FilterCallback < ZippyXMLCallback
   def transform(doc)
-    doc.find("//status").each do
-      
+    doc.find("//status").each do |status|
+      guid = status.find_first("id").content
+      Vote.find_or_initialize_by_tweet_guid_and_user_id_and_speaker_handle()
     end
   end
 end
 
 class FavoriteCallback < ZippyXMLCallback
-  def initialize(keyword)
+  def initialize(request, keyword)
+    super(request)
     @value = keyword == "create" ? 1 : -1
   end
   
   def transform(doc)
-    
+    doc.find("//status").each do
+      guid = status.find_first("id").content
+      speaker = status.find_first("./user/screen_name").content
+      content = status.find_first("./text").content
+      vote = Vote.find_or_initialize_by_tweet_guid_and_user_id_and_speaker_handle(guid, @user.id, speaker)
+      vote.content = content
+      vote.value = @value
+      vote.save
+    end    
+    @user.update_classifier
   end
 end
 
 
-use SimpleProxy do |request|  
-  STDERR.puts request.env.inspect
+use SimpleProxy do |request|
+  
+    puts request.env.inspect
   case request.path 
   when %r[/statuses/home_timeline.xml]
-    SERVE_CONTENT#    ["twitter.com", FilterCallback.new()]
+    
+    ["twitter.com", FilterCallback.new(request)]
   when %r[/favorites/(\w+)/(\d+).xml]
-    ["twitter.com", FavoriteCallback.new($1)]
+    ["twitter.com", FavoriteCallback.new(request, $1)]
   when %r[^/(search|trends)]
     "search.twitter.com"
   when %r[^/(admin|misc|$)]
@@ -79,13 +131,6 @@ use SimpleProxy do |request|
     "twitter.com"
   end
 end
-# /statuses/home_timeline.xml?count=100
-
-get /.*/ do
-  LOGGER.warn "adfsdsafa"
-  "ASDF"
-end
-
 
 get "/" do
   erb :home
