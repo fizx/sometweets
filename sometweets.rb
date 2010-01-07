@@ -4,6 +4,8 @@ require 'activerecord'
 dbconfig = YAML.load(File.read('config/database.yml'))
 ActiveRecord::Base.establish_connection dbconfig['production']
 
+
+
 require 'cgi'
 require 'twitter'
 require 'oauth'
@@ -62,9 +64,8 @@ class FavoriteCallback < ZippyXMLCallback
 end
 
 
-use SimpleProxy do |request|
-  
-    puts request.env.inspect
+use SimpleProxy do |request|  
+  STDERR.puts request.env.inspect
   case request.path 
   when %r[/statuses/home_timeline.xml]
     SERVE_CONTENT#    ["twitter.com", FilterCallback.new()]
@@ -81,8 +82,8 @@ end
 # /statuses/home_timeline.xml?count=100
 
 get /.*/ do
-  puts request.env.inspect
-  "huh"
+  LOGGER.warn "adfsdsafa"
+  "ASDF"
 end
 
 
