@@ -153,7 +153,7 @@ def token
     puts "Recalling token: #{session[:token]}"
     OAuth::RequestToken.new(oauth.consumer, session[:token], session[:secret])
   else
-    t = oauth.consumer.get_request_token(:oauth_callback => "http://twitter.local/admin")
+    t = oauth.consumer.get_request_token(:oauth_callback => "http://sometweets.heroku.com/admin")
     session[:token]  = t.token
     session[:secret] = t.secret
     puts "Generated token: #{session[:token]} (#{t.token})"
